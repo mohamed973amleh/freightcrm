@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>FreightCRM</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0d1117;--surface:#161b22;--card:#1c2230;--border:#21262d;
+  --text:#e6edf3;--muted:#7d8590;--dim:#30363d;
+  --green:#3fb950;--blue:#58a6ff;--purple:#bc8cff;
+  --orange:#f0883e;--red:#f85149;--yellow:#e3b341;
+  --green-bg:#0d2119;--blue-bg:#0d1f3c;--purple-bg:#1e1040;
+  --orange-bg:#2d1a0a;--red-bg:#2d0f0d;--yellow-bg:#2d2100;
+}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;display:flex;flex-direction:column}
+button{cursor:pointer;border:none;font-family:inherit;font-size:inherit}
+input,select,textarea{font-family:inherit;font-size:14px;color:var(--text);background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:11px 13px;width:100%;outline:none;color-scheme:dark;-webkit-appearance:none}
+input:focus,select:focus,textarea:focus{border-color:var(--blue)}
+select option{background:var(--surface)}
+textarea{resize:vertical;min-height:72px}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes fillBar{from{width:0}to{width:var(--w)}}
+
+/* ── TOPBAR ── */
+#topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:13px 16px 10px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:10}
+.brand{font-size:17px;font-weight:700;color:var(--text)}.brand span{color:var(--blue)}
+.topbar-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.topbar-right{display:flex;gap:7px}
+.tbar-btn{height:34px;border-radius:9px;padding:0 12px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px;border:1px solid var(--border);background:var(--card);color:var(--muted)}
+.tbar-btn.purple{background:var(--purple-bg);border-color:#bc8cff33;color:var(--purple)}
+
+/* ── SCROLL ── */
+#scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 14px 88px}
+
+/* ── BOTTOM TABS ── */
+#tabbar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);display:flex;z-index:20;padding-bottom:env(safe-area-inset-bottom)}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:9px 0 7px;gap:2px;border:none;background:transparent;color:var(--muted);font-size:10px;font-weight:500;transition:color .15s;position:relative}
+.tab.active{color:var(--blue)}
+.tab-icon{font-size:19px;line-height:1}
+.tab-dot{position:absolute;top:5px;right:calc(50% - 15px);width:7px;height:7px;background:var(--red);border-radius:50%;border:2px solid var(--surface)}
+.fab{width:46px;height:46px;border-radius:14px;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;margin:-8px auto 0;box-shadow:0 4px 16px #58a6ff44;flex-shrink:0;border:none}
+
+/* ── SAVE BANNER ── */
+#save-banner{background:var(--orange-bg);border-bottom:1px solid #f0883e22;padding:8px 16px;display:none;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0}
+#save-banner p{font-size:12px;color:var(--orange)}
+#save-banner button{background:#f0883e22;border:1px solid #f0883e44;color:var(--orange);padding:5px 12px;border-radius:7px;font-size:12px;font-weight:600}
+
+/* ── SECTION HEADER ── */
+.sec-hd{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:18px 0 10px;display:flex;align-items:center;justify-content:space-between}
+.sec-hd:first-child{margin-top:0}
+
+/* ── TODAY VIEW ── */
+.today-greeting{margin-bottom:16px}
+.today-greeting h2{font-size:20px;font-weight:700;margin-bottom:2px}
+.today-greeting p{font-size:13px;color:var(--muted)}
+
+.action-card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:14px;margin-bottom:9px;cursor:pointer;transition:all .15s;display:flex;align-items:flex-start;gap:12px}
+.action-card:active{transform:scale(.98)}
+.action-icon{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.action-body{flex:1;min-width:0}
+.action-title{font-size:15px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.action-sub{font-size:12px;color:var(--muted)}
+.action-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0}
+.urgency-badge{font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px}
+
+.all-clear{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:28px 20px;text-align:center;margin-bottom:9px}
+.all-clear-icon{font-size:32px;margin-bottom:8px}
+.all-clear-text{font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px}
+.all-clear-sub{font-size:13px;color:var(--muted)}
+
+/* ── MINI STATS STRIP ── */
+.stats-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.mstat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:11px 8px;text-align:center}
+.mstat-n{font-size:19px;font-weight:700;line-height:1}
+.mstat-l{font-size:10px;color:var(--muted);margin-top:3px}
+
+/* ── LEADS VIEW ── */
+.search-wrap{position:relative;margin-bottom:12px}
+.search-wrap input{padding-left:38px;background:var(--surface);border-radius:12px}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.stage-tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:13px;scrollbar-width:none;padding-bottom:1px}
+.stage-tabs::-webkit-scrollbar{display:none}
+.stab{flex-shrink:0;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1.5px solid var(--border);background:transparent;color:var(--muted)}
+.stab.active{color:#fff}
+
+.lead-card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:13px 13px 13px 16px;cursor:pointer;transition:transform .15s;position:relative;overflow:hidden;margin-bottom:8px}
+.lead-card:active{transform:scale(.98)}
+.lc-bar{position:absolute;left:0;top:0;bottom:0;width:3px}
+.lc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:7px}
+.lc-company{font-size:15px;font-weight:700;line-height:1.2}
+.lc-contact{font-size:12px;color:var(--muted);margin-top:2px}
+.lc-value{font-size:14px;font-weight:700;color:var(--green)}
+.lc-meta{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:0}
+.mtag{font-size:11px;color:var(--muted);background:var(--card);border:1px solid var(--border);border-radius:6px;padding:2px 7px;display:inline-flex;align-items:center;gap:3px}
+.lc-foot{display:flex;align-items:center;justify-content:space-between;margin-top:9px;padding-top:8px;border-top:1px solid var(--border)}
+
+/* ── FUNNEL VIEW ── */
+.funnel-wrap{margin-bottom:20px}
+.funnel-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;cursor:pointer}
+.funnel-label{font-size:12px;font-weight:600;width:90px;flex-shrink:0;color:var(--muted)}
+.funnel-bar-wrap{flex:1;background:var(--card);border-radius:6px;height:28px;overflow:hidden;position:relative}
+.funnel-bar{height:100%;border-radius:6px;display:flex;align-items:center;padding-left:10px;font-size:12px;font-weight:700;color:#fff;transition:width .6s ease;min-width:2px}
+.funnel-count{font-size:12px;font-weight:700;width:28px;text-align:right;flex-shrink:0}
+.funnel-arrow{text-align:center;font-size:12px;color:var(--dim);margin:-2px 0 6px 100px}
+
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px}
+.kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.kpi-value{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:3px}
+
+.monthly-wrap{margin-bottom:16px}
+.month-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.month-label{font-size:11px;color:var(--muted);width:36px;flex-shrink:0}
+.month-bar-bg{flex:1;background:var(--card);border-radius:5px;height:22px;overflow:hidden}
+.month-bar{height:100%;background:var(--green);border-radius:5px;display:flex;align-items:center;padding-left:8px;font-size:11px;font-weight:600;color:#000;transition:width .5s ease;min-width:2px}
+.month-val{font-size:11px;color:var(--muted);width:44px;text-align:right;flex-shrink:0}
+
+/* ── OVERLAY / SHEET ── */
+.overlay{position:fixed;inset:0;background:#000000bb;z-index:100;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease;padding-top:40px;overflow-y:auto}
+.sheet{background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:560px;padding:20px 18px calc(28px + env(safe-area-inset-bottom));animation:slideUp .25s ease;max-height:92vh;overflow-y:auto;margin:auto 0 0}
+.sheet-handle{width:36px;height:4px;background:var(--dim);border-radius:2px;margin:0 auto 18px}
+.sheet-hd{font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.close-x{background:var(--card);border:1px solid var(--border);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--muted)}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+.fg.full{grid-column:1/-1}
+.flabel{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.btn-primary{width:100%;padding:14px;border-radius:12px;background:var(--green);color:#000;font-size:15px;font-weight:700;margin-top:6px}
+.btn-primary:active{background:#2ea043}
+.btn-danger{width:100%;padding:13px;border-radius:12px;background:var(--red-bg);color:var(--red);font-size:14px;font-weight:600;margin-top:8px;border:1px solid #f8514922}
+.scan-shortcut{width:100%;padding:12px;border-radius:12px;background:var(--purple-bg);border:1.5px solid #bc8cff33;color:var(--purple);font-size:14px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:7px}
+
+/* ── SCANNER ── */
+.drop-zone{border:2px dashed var(--dim);border-radius:16px;padding:36px 16px;text-align:center;margin-bottom:14px}
+.drop-zone:active{border-color:var(--purple)}
+.drop-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+.dbtn{padding:11px 18px;border-radius:10px;font-size:13px;font-weight:600}
+.dbtn-f{background:var(--card);border:1px solid var(--border);color:var(--muted)}
+.dbtn-c{background:var(--purple-bg);border:1px solid #bc8cff44;color:var(--purple)}
+.spinner{width:38px;height:38px;border:3px solid #bc8cff22;border-top-color:var(--purple);border-radius:50%;animation:spin .9s linear infinite;margin:0 auto 14px}
+.bl-prev{width:100%;max-height:110px;object-fit:contain;border-radius:10px;margin-bottom:16px;opacity:.75}
+.ext-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px}
+.ext-item{background:var(--card);border-radius:9px;padding:8px 10px}
+.ext-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
+.ext-val{font-size:12px;color:var(--text)}
+.scan-actions{display:flex;gap:9px;margin-top:14px}
+.btn-rescan{padding:13px;border-radius:12px;background:var(--card);border:1px solid var(--border);color:var(--muted);font-size:14px;font-weight:600}
+.btn-import{flex:1;padding:13px;border-radius:12px;background:var(--purple-bg);border:1px solid #bc8cff44;color:var(--purple);font-size:15px;font-weight:700}
+
+/* ── DATA MENU ── */
+.menu-btn{width:100%;padding:14px;border-radius:12px;font-size:15px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);color:var(--text);text-align:left}
+.menu-btn-sub{font-size:11px;color:var(--muted);font-weight:400;margin-top:1px}
+
+/* ── WELCOME ── */
+#welcome{display:flex;align-items:center;justify-content:center;min-height:100%;padding:20px}
+.wcard{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:36px 26px;width:100%;max-width:400px;text-align:center;animation:slideUp .3s ease}
+.wicon{width:58px;height:58px;border-radius:17px;background:linear-gradient(135deg,#1f6feb,#3fb950);display:flex;align-items:center;justify-content:center;font-size:27px;margin:0 auto 16px}
+.wtitle{font-size:24px;font-weight:700;margin-bottom:8px}
+.wdesc{color:var(--muted);font-size:13px;line-height:1.7;margin-bottom:26px}
+.wbtn{width:100%;padding:14px;border-radius:12px;font-size:15px;font-weight:600;margin-bottom:10px;border:none}
+.wbtn-primary{background:var(--green);color:#000}
+.wbtn-sec{background:var(--card);color:var(--muted);border:1.5px solid var(--border)}
+.wtip{font-size:11px;color:var(--dim);margin-top:14px;line-height:1.7}
+
+/* ── REMINDER BANNER ── */
+#notif-bar{background:var(--blue-bg);border-bottom:1px solid #58a6ff22;padding:9px 16px;display:none;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0}
+#notif-bar p{font-size:12px;color:var(--blue)}
+#notif-bar button{background:#58a6ff22;border:1px solid #58a6ff44;color:var(--blue);padding:5px 11px;border-radius:7px;font-size:12px;font-weight:600}
+
+.empty-state{text-align:center;padding:44px 20px;color:var(--dim)}
+.empty-icon{font-size:34px;margin-bottom:10px}
+.empty-text{font-size:15px;color:var(--muted);margin-bottom:4px;font-weight:600}
+.empty-sub{font-size:13px;color:var(--dim)}
+
+/* ── EMAIL ── */
+.email-btn{height:32px;padding:0 11px;border-radius:8px;font-size:12px;font-weight:600;background:#0d1f3c;border:1px solid #58a6ff33;color:var(--blue);display:inline-flex;align-items:center;gap:4px;flex-shrink:0}
+.email-generating{text-align:center;padding:32px 0}
+.email-subject-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.email-subject-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+.email-subject-inp{flex:1}
+.email-body-area{width:100%;min-height:220px;border-radius:10px;padding:12px;font-size:13px;line-height:1.65;background:var(--card);border:1.5px solid var(--border);color:var(--text);resize:vertical}
+.email-body-area:focus{border-color:var(--blue);outline:none}
+.email-to-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.email-to-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+.email-actions{display:flex;gap:9px;margin-top:14px}
+.btn-open-mail{flex:1;padding:13px;border-radius:12px;background:var(--blue);color:#fff;font-size:15px;font-weight:700;border:none}
+.btn-open-mail:active{background:#388bfd}
+.btn-regen{padding:13px 14px;border-radius:12px;background:var(--card);border:1px solid var(--border);color:var(--muted);font-size:13px;font-weight:600}
+.email-tip{font-size:11px;color:var(--dim);text-align:center;margin-top:10px;line-height:1.6}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div id="topbar" style="display:none">
+  <div>
+    <div class="brand">Freight<span>CRM</span></div>
+    <div class="topbar-sub" id="topbar-sub"></div>
+    <div id="sync-status" style="font-size:10px;margin-top:1px"></div>
+  </div>
+  <div class="topbar-right">
+    <button class="tbar-btn purple" onclick="openScanner()">📷 Scan B/L</button>
+    <button class="tbar-btn" onclick="openDataMenu()">💾</button>
+  </div>
+</div>
+
+<!-- BANNERS -->
+<div id="notif-bar">
+  <p>🔔 Allow notifications for follow-up reminders?</p>
+  <button onclick="requestNotifPerms()">Allow</button>
+</div>
+<div id="save-banner">
+  <p>⚠️ Unsaved changes</p>
+  <button onclick="exportData()">Save File</button>
+</div>
+
+<!-- SCROLL -->
+<div id="scroll">
+  <!-- WELCOME -->
+  <div id="welcome">
+    <div class="wcard">
+      <div class="wicon">🚢</div>
+      <div class="wtitle">FreightCRM</div>
+      <div class="wdesc">
+        Your freight sales command centre.<br/>
+        <strong style="color:var(--blue)">📅 Today view</strong> shows exactly what to do next.<br/>
+        <strong style="color:var(--purple)">📷 B/L Scanner</strong> fills deals from photos.<br/>
+        <strong style="color:var(--green)">📊 Funnel & win rate</strong> track your performance.
+      </div>
+      <button class="wbtn wbtn-primary" onclick="startFresh()">🚀 Start Fresh</button>
+      <button class="wbtn wbtn-sec" onclick="document.getElementById('load-inp').click()">📂 Load Saved JSON</button>
+      <div id="sheets-boot" style="display:none;margin-top:4px">
+        <button class="wbtn" style="background:var(--blue-bg);border:1.5px solid #58a6ff33;color:var(--blue)" onclick="bootFromSheets()">☁️ Load from Google Sheets</button>
+      </div>
+      <div class="wtip">Data saved as a JSON file on your device.<br/>Tap 💾 after changes · Load to restore.</div>
+      <input type="file" id="load-inp" accept=".json" style="display:none" onchange="loadFile(this)"/>
+    </div>
+  </div>
+
+  <!-- TODAY VIEW -->
+  <div id="today-view" style="display:none"></div>
+
+  <!-- LEADS VIEW -->
+  <div id="leads-view" style="display:none">
+    <div class="stats-strip" id="stats-strip"></div>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="search" id="search-inp" placeholder="Search company, contact, route…" oninput="renderLeads()"/>
+    </div>
+    <div class="stage-tabs" id="stage-tabs"></div>
+    <div id="leads-list"></div>
+  </div>
+
+  <!-- FUNNEL VIEW -->
+  <div id="funnel-view" style="display:none"></div>
+
+</div>
+
+<!-- BOTTOM TABS -->
+<div id="tabbar" style="display:none">
+  <button class="tab active" id="tab-today"  onclick="setTab('today')">
+    <span class="tab-icon">📅</span>Today
+    <span class="tab-dot" id="today-dot" style="display:none"></span>
+  </button>
+  <button class="tab" id="tab-leads"  onclick="setTab('leads')"><span class="tab-icon">📋</span>Leads</button>
+  <button class="fab" onclick="openNewDeal(null)">＋</button>
+  <button class="tab" id="tab-funnel" onclick="setTab('funnel')"><span class="tab-icon">📊</span>Funnel</button>
+  <button class="tab" id="tab-data"   onclick="openDataMenu()"><span class="tab-icon">💾</span>Data</button>
+</div>
+
+<!-- DEAL SHEET -->
+<div id="deal-ov" class="overlay" style="display:none" onclick="maybeClose('deal-ov',event)">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hd"><span id="deal-title">New Lead</span><button class="close-x" onclick="closeSheet('deal-ov')">✕</button></div>
+    <button class="scan-shortcut" id="scan-sc" onclick="openScanner()">📷 Scan B/L to Auto-fill</button>
+    <div class="frow">
+      <div class="fg full"><label class="flabel">Company / Shipper *</label><input id="f-company" placeholder="Company name"/></div>
+      <div class="fg"><label class="flabel">Contact Person</label><input id="f-contact" placeholder="Name"/></div>
+      <div class="fg"><label class="flabel">Stage</label>
+        <select id="f-stage"><option>Lead</option><option>Quoted</option><option>Negotiating</option><option>Shipment</option><option>Closed Won</option><option>Closed Lost</option></select>
+      </div>
+      <div class="fg"><label class="flabel">Origin</label><input id="f-origin" placeholder="e.g. Shanghai"/></div>
+      <div class="fg"><label class="flabel">Destination</label><input id="f-destination" placeholder="e.g. Rotterdam"/></div>
+      <div class="fg"><label class="flabel">Route</label>
+        <select id="f-route"><option>Air</option><option>Sea FCL</option><option>Sea LCL</option><option>Road</option><option>Rail</option><option>Multimodal</option></select>
+      </div>
+      <div class="fg"><label class="flabel">Value (USD)</label><input id="f-value" type="number" placeholder="0"/></div>
+      <div class="fg full"><label class="flabel">Follow-up Date</label><input id="f-followup" type="date"/></div>
+      <div class="fg full"><label class="flabel">Notes</label><textarea id="f-notes" placeholder="Consignee, cargo, container numbers…"></textarea></div>
+    </div>
+    <button class="btn-primary" id="deal-save-btn" onclick="saveDeal()">Add Lead</button>
+    <button class="btn-danger" id="deal-del-btn" style="display:none" onclick="deleteDeal()">🗑 Delete Deal</button>
+  </div>
+</div>
+
+<!-- EMAIL SHEET -->
+<div id="email-ov" class="overlay" style="display:none" onclick="maybeClose('email-ov',event)">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hd"><span>✉️ Email Draft</span><button class="close-x" onclick="closeSheet('email-ov')">✕</button></div>
+    <div id="email-body"></div>
+  </div>
+</div>
+
+<!-- SCANNER SHEET -->
+<div id="scan-ov" class="overlay" style="display:none" onclick="maybeClose('scan-ov',event)">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hd"><span>📄 B/L Scanner</span><button class="close-x" onclick="closeSheet('scan-ov')">✕</button></div>
+    <div id="scan-body"></div>
+    <input type="file" id="bl-file" accept="image/*" style="display:none" onchange="processBL(this)"/>
+    <input type="file" id="bl-cam"  accept="image/*" capture style="display:none" onchange="processBL(this)"/>
+  </div>
+</div>
+
+<!-- DATA SHEET -->
+<div id="data-ov" class="overlay" style="display:none" onclick="maybeClose('data-ov',event)">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hd"><span>Data</span><button class="close-x" onclick="closeSheet('data-ov')">✕</button></div>
+    <button class="menu-btn" onclick="exportData();closeSheet('data-ov')">
+      💾 <div><div>Save File</div><div class="menu-btn-sub">Download freight-crm-data.json</div></div>
+    </button>
+    <button class="menu-btn" onclick="document.getElementById('imp-inp').click()">
+      📂 <div><div>Load File</div><div class="menu-btn-sub">Restore from saved JSON file</div></div>
+    </button>
+    <button class="menu-btn" onclick="toggleReminders()">
+      🔔 <div><div id="notif-label">Enable Follow-up Reminders</div><div class="menu-btn-sub" id="notif-sub">Get browser notifications on follow-up day</div></div>
+    </button>
+    <div style="margin-top:4px">
+      <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px">☁️ Google Sheets Sync</div>
+      <input id="sheets-inp" type="url" placeholder="Paste your Apps Script URL here…" style="font-size:12px;margin-bottom:6px" oninput="sheetsUrl=this.value;localStorage.setItem('freight-sheetsurl',this.value);updateSheetsStatus()"/>
+      <div id="sheets-status" style="font-size:11px;color:var(--dim);margin-bottom:4px"></div>
+      <button onclick="testSheetsSync()" style="width:100%;padding:10px;border-radius:10px;background:var(--card);border:1px solid var(--border);color:var(--muted);font-size:13px;font-weight:600;margin-bottom:2px">🔁 Test Connection & Sync Now</button>
+    </div>
+    <div style="margin-top:12px">
+      <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px">🔑 Anthropic API Key</div>
+      <input id="apikey-inp" type="password" placeholder="sk-ant-api03-…" style="font-size:13px" oninput="apiKey=this.value;localStorage.setItem('freight-apikey',this.value);updateApiKeyStatus()"/>
+      <div id="apikey-status" style="font-size:11px;margin-top:6px;color:var(--dim)">Required for B/L Scanner and Email Drafting. Get a key at console.anthropic.com</div>
+    </div>
+    <input type="file" id="imp-inp" accept=".json" style="display:none" onchange="loadFile(this)"/>
+    <div id="data-status" style="font-size:12px;color:var(--dim);text-align:center;margin-top:6px"></div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────
+let deals = [];
+let activeTab = 'today';
+let activeStage = 'All';
+let editingId = null;
+let blData = null;
+let _saved = true;
+let notifEnabled = localStorage.getItem('freight-notif') === '1';
+let apiKey = localStorage.getItem('freight-apikey') || '';
+let sheetsUrl = localStorage.getItem('freight-sheetsurl') || '';
+
+const STAGES = ['Lead','Quoted','Negotiating','Shipment','Closed Won','Closed Lost'];
+const SC = {
+  'Lead':        {dot:'#58a6ff',bg:'#0d1f3c',text:'#58a6ff'},
+  'Quoted':      {dot:'#3fb950',bg:'#0d2119',text:'#3fb950'},
+  'Negotiating': {dot:'#e3b341',bg:'#2d2100',text:'#e3b341'},
+  'Shipment':    {dot:'#bc8cff',bg:'#1e1040',text:'#bc8cff'},
+  'Closed Won':  {dot:'#3fb950',bg:'#0d2119',text:'#3fb950'},
+  'Closed Lost': {dot:'#f85149',bg:'#2d0f0d',text:'#f85149'},
+};
+const FUNNEL_STAGES = ['Lead','Quoted','Negotiating','Shipment','Closed Won'];
+const FUNNEL_COLORS = ['#58a6ff','#3fb950','#e3b341','#bc8cff','#3fb950'];
+const ROUTES = ['Air','Sea FCL','Sea LCL','Road','Rail','Multimodal'];
+
+// ── HELPERS ────────────────────────────────────────────────────
+const uid  = () => Date.now().toString(36)+Math.random().toString(36).slice(2);
+const td   = () => new Date().toISOString().split('T')[0];
+const esc  = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const fmtV = n => n ? '$'+Number(n).toLocaleString() : '';
+const daysUntil = d => d ? Math.ceil((new Date(d) - new Date(td())) / 86400000) : null;
+
+function fuBadge(date, big) {
+  const d = daysUntil(date); if (d === null) return '';
+  let bg, c, lbl;
+  if (d < 0)      { bg='#2d0f0d'; c='#f85149'; lbl=`${Math.abs(d)}d overdue`; }
+  else if (d===0) { bg='#2d2100'; c='#e3b341'; lbl='Today!'; }
+  else if (d<=3)  { bg='#2d1a0a'; c='#f0883e'; lbl=`in ${d}d`; }
+  else            { bg='#0d2119'; c='#3fb950'; lbl=`in ${d}d`; }
+  const sz = big ? '12px' : '11px';
+  return `<span style="background:${bg};color:${c};border-radius:6px;padding:3px 8px;font-size:${sz};font-weight:700;white-space:nowrap">${lbl}</span>`;
+}
+
+function stagePill(stage) {
+  const c = SC[stage]||SC['Lead'];
+  return `<span style="background:${c.bg};color:${c.text};border:1px solid ${c.dot}33;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:4px;white-space:nowrap">
+    <span style="width:5px;height:5px;border-radius:50%;background:${c.dot};display:inline-block"></span>${esc(stage)}</span>`;
+}
+
+function greetingText() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+
+function monthName(offset) {
+  const d = new Date(); d.setMonth(d.getMonth() - offset);
+  return d.toLocaleString('default',{month:'short'}) + ' ' + d.getFullYear().toString().slice(2);
+}
+
+// ── GOOGLE SHEETS SYNC ─────────────────────────────────────────
+let _syncTimer = null;
+let _syncing = false;
+
+function scheduleSync() {
+  if (!sheetsUrl) { setSaved(false); return; }
+  clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(syncToSheets, 1200); // debounce 1.2s
+}
+
+async function syncToSheets() {
+  if (!sheetsUrl || _syncing) return;
+  _syncing = true;
+  setSyncStatus('syncing');
+  try {
+    // Use a form-encoded POST which avoids CORS preflight
+    const form = new FormData();
+    form.append('deals', JSON.stringify(deals));
+    const res = await fetch(sheetsUrl, { method:'POST', body: new URLSearchParams({deals: JSON.stringify(deals)}) });
+    const text = await res.text();
+    const data = JSON.parse(text);
+    if (data.ok) { setSyncStatus('ok'); setSaved(true); }
+    else         { setSyncStatus('error', data.error); }
+  } catch(e) {
+    setSyncStatus('error', 'Could not reach Google Sheets');
+  }
+  _syncing = false;
+}
+
+async function loadFromSheets() {
+  if (!sheetsUrl) return false;
+  setSyncStatus('loading');
+  try {
+    const res  = await fetch(sheetsUrl + '?action=read');
+    const text = await res.text();
+    const data = JSON.parse(text);
+    if (data.deals) { deals = data.deals; setSyncStatus('ok'); setSaved(true); return true; }
+  } catch(e) { setSyncStatus('error', 'Could not load from Google Sheets'); }
+  return false;
+}
+
+function setSyncStatus(state, msg) {
+  const el = document.getElementById('sync-status');
+  if (!el) return;
+  const states = {
+    ok:      { icon:'☁️', text:'Synced to Google Sheets',      color:'var(--green)' },
+    syncing: { icon:'🔄', text:'Saving to Google Sheets…',     color:'var(--blue)'  },
+    loading: { icon:'🔄', text:'Loading from Google Sheets…',  color:'var(--blue)'  },
+    error:   { icon:'⚠️', text: msg||'Sync error',             color:'var(--orange)'},
+    none:    { icon:'',   text:'',                              color:'var(--dim)'   },
+  };
+  const s = states[state]||states.none;
+  el.innerHTML = `<span style="color:${s.color}">${s.icon} ${s.text}</span>`;
+  // also update topbar
+  const tb = document.getElementById('sync-dot');
+  if (tb) {
+    tb.style.display = state==='error' ? 'inline' : 'none';
+  }
+}
+
+// ── PERSISTENCE ────────────────────────────────────────────────
+function exportData() {
+  const b = new Blob([JSON.stringify(deals,null,2)],{type:'application/json'});
+  const u = URL.createObjectURL(b); const a = document.createElement('a');
+  a.href=u; a.download='freight-crm-data.json'; a.click(); URL.revokeObjectURL(u);
+  setSaved(true);
+  document.getElementById('data-status').textContent = '✓ Downloaded';
+}
+function loadFile(inp) {
+  const f = inp.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    try { deals = JSON.parse(e.target.result); if(!Array.isArray(deals)) deals=[]; setSaved(true); showApp(); renderAll(); if(sheetsUrl) syncToSheets(); }
+    catch { alert('Could not read file.'); }
+  };
+  r.readAsText(f); inp.value = '';
+}
+function setSaved(v) {
+  _saved = v;
+  const banner = document.getElementById('save-banner');
+  // only show banner if no sheets url configured
+  if (banner) banner.style.display = (!v && deals.length > 0 && !sheetsUrl) ? 'flex' : 'none';
+}
+function markUnsaved() { setSaved(false); if(sheetsUrl) scheduleSync(); }
+
+// ── BOOT ───────────────────────────────────────────────────────
+function startFresh() { deals=[]; setSaved(true); showApp(); renderAll(); }
+
+// Show "Load from Google Sheets" button on welcome screen if URL is saved
+window.addEventListener('DOMContentLoaded', () => {
+  if (sheetsUrl) document.getElementById('sheets-boot').style.display = 'block';
+});
+
+async function bootFromSheets() {
+  const btn = document.querySelector('#sheets-boot button');
+  if(btn) { btn.textContent = '🔄 Loading…'; btn.disabled = true; }
+  const loaded = await loadFromSheets();
+  if (loaded) { showApp(); renderAll(); }
+  else {
+    if(btn) { btn.textContent = '☁️ Load from Google Sheets'; btn.disabled = false; }
+    alert('Could not load from Google Sheets. Check your URL in Data settings.');
+  }
+}
+
+async function showApp() {
+  document.getElementById('welcome').style.display = 'none';
+  document.getElementById('topbar').style.display = 'flex';
+  document.getElementById('tabbar').style.display = 'flex';
+  document.getElementById('today-view').style.display = 'block';
+  checkNotifPrompt();
+}
+
+// ── NOTIFICATIONS ──────────────────────────────────────────────
+function checkNotifPrompt() {
+  if (!notifEnabled && 'Notification' in window && Notification.permission === 'default') {
+    document.getElementById('notif-bar').style.display = 'flex';
+  }
+  updateNotifLabel();
+}
+function updateNotifLabel() {
+  const lbl = document.getElementById('notif-label');
+  const sub = document.getElementById('notif-sub');
+  if (!lbl) return;
+  if (notifEnabled) { lbl.textContent = '🔔 Reminders Enabled'; sub.textContent = 'You\'ll be notified on follow-up days'; }
+  else              { lbl.textContent = 'Enable Follow-up Reminders'; sub.textContent = 'Get browser notifications on follow-up day'; }
+}
+async function requestNotifPerms() {
+  if (!('Notification' in window)) { alert('Notifications not supported in this browser.'); return; }
+  const p = await Notification.requestPermission();
+  if (p === 'granted') { notifEnabled = true; localStorage.setItem('freight-notif','1'); scheduleReminders(); document.getElementById('notif-bar').style.display = 'none'; updateNotifLabel(); }
+}
+function toggleReminders() {
+  if (!notifEnabled) requestNotifPerms();
+  else { notifEnabled = false; localStorage.removeItem('freight-notif'); updateNotifLabel(); }
+}
+function scheduleReminders() {
+  if (!notifEnabled || Notification.permission !== 'granted') return;
+  const todayDue = deals.filter(d => {
+    const x = daysUntil(d.followUp);
+    return x !== null && x === 0 && !['Closed Won','Closed Lost'].includes(d.stage);
+  });
+  todayDue.forEach(d => {
+    setTimeout(() => {
+      new Notification('FreightCRM Follow-up', { body: `📞 Follow up with ${d.company} today!`, icon: '' });
+    }, 2000);
+  });
+}
+
+// ── TABS ───────────────────────────────────────────────────────
+function setTab(tab) {
+  activeTab = tab;
+  ['today','leads','funnel'].forEach(t => {
+    const el = document.getElementById('tab-'+t);
+    if (el) el.classList.toggle('active', t === tab);
+  });
+  document.getElementById('today-view').style.display  = tab==='today'  ? 'block' : 'none';
+  document.getElementById('leads-view').style.display  = tab==='leads'  ? 'block' : 'none';
+  document.getElementById('funnel-view').style.display = tab==='funnel' ? 'block' : 'none';
+  if (tab==='today')  renderToday();
+  if (tab==='leads')  renderLeads();
+  if (tab==='funnel') renderFunnel();
+}
+
+// ── RENDER ALL ─────────────────────────────────────────────────
+function renderAll() {
+  updateTopSub(); updateTodayDot();
+  if (activeTab==='today')  renderToday();
+  if (activeTab==='leads')  renderLeads();
+  if (activeTab==='funnel') renderFunnel();
+  scheduleReminders();
+}
+
+function updateTopSub() {
+  const a = deals.filter(d=>!['Closed Won','Closed Lost'].includes(d.stage));
+  document.getElementById('topbar-sub').textContent = `${deals.length} deals · ${a.length} active`;
+}
+
+function updateTodayDot() {
+  const urgent = deals.filter(d => {
+    const x = daysUntil(d.followUp);
+    return x !== null && x <= 0 && !['Closed Won','Closed Lost'].includes(d.stage);
+  });
+  document.getElementById('today-dot').style.display = urgent.length > 0 ? 'block' : 'none';
+}
+
+// ── TODAY VIEW ─────────────────────────────────────────────────
+function renderToday() {
+  const overdue = deals.filter(d => { const x=daysUntil(d.followUp); return x!==null&&x<0&&!['Closed Won','Closed Lost'].includes(d.stage); });
+  const dueToday = deals.filter(d => { const x=daysUntil(d.followUp); return x===0&&!['Closed Won','Closed Lost'].includes(d.stage); });
+  const dueSoon  = deals.filter(d => { const x=daysUntil(d.followUp); return x!==null&&x>0&&x<=3&&!['Closed Won','Closed Lost'].includes(d.stage); });
+  const noFollowup = deals.filter(d => !d.followUp&&!['Closed Won','Closed Lost'].includes(d.stage));
+  const active = deals.filter(d=>!['Closed Won','Closed Lost'].includes(d.stage));
+
+  let html = `<div class="today-greeting"><h2>${greetingText()} 👋</h2><p>${active.length} active deal${active.length!==1?'s':''} · ${new Date().toLocaleDateString('en',{weekday:'long',month:'long',day:'numeric'})}</p></div>`;
+
+  const totalUrgent = overdue.length + dueToday.length;
+  if (totalUrgent === 0 && dueSoon.length === 0 && noFollowup.length === 0 && deals.length > 0) {
+    html += `<div class="all-clear"><div class="all-clear-icon">✅</div><div class="all-clear-text">All clear — nothing urgent today</div><div class="all-clear-sub">Check back tomorrow or add new leads</div></div>`;
+  }
+  if (deals.length === 0) {
+    html += `<div class="all-clear"><div class="all-clear-icon">📦</div><div class="all-clear-text">No deals yet</div><div class="all-clear-sub">Tap ＋ to add your first lead or scan a B/L</div></div>`;
+  }
+
+  if (overdue.length > 0) {
+    html += `<div class="sec-hd"><span>🔴 Overdue (${overdue.length})</span></div>`;
+    html += overdue.map(d => actionCard(d,'#2d0f0d','#f85149','📞',`${Math.abs(daysUntil(d.followUp))}d overdue`,'#f85149')).join('');
+  }
+  if (dueToday.length > 0) {
+    html += `<div class="sec-hd"><span>🟡 Due Today (${dueToday.length})</span></div>`;
+    html += dueToday.map(d => actionCard(d,'#2d2100','#e3b341','📅','Follow up today','#e3b341')).join('');
+  }
+  if (dueSoon.length > 0) {
+    html += `<div class="sec-hd"><span>🟠 Due This Week (${dueSoon.length})</span></div>`;
+    html += dueSoon.map(d => actionCard(d,'#2d1a0a','#f0883e','⏰',`in ${daysUntil(d.followUp)}d`,'#f0883e')).join('');
+  }
+  if (noFollowup.length > 0) {
+    html += `<div class="sec-hd"><span>⚪ No Follow-up Set (${noFollowup.length})</span></div>`;
+    html += noFollowup.map(d => actionCard(d,'#1c2230','#7d8590','❓','No date set','#7d8590')).join('');
+  }
+
+  document.getElementById('today-view').innerHTML = html;
+}
+
+function actionCard(d, iconBg, iconColor, icon, urgencyLabel, urgencyColor) {
+  const route = d.origin && d.destination ? `${d.origin} → ${d.destination}` : d.route||'';
+  return `<div class="action-card" style="border-color:${iconColor}33">
+    <div class="action-icon" style="background:${iconBg};color:${iconColor}" onclick="openEditDeal('${d.id}')">${icon}</div>
+    <div class="action-body" onclick="openEditDeal('${d.id}')">
+      <div class="action-title">${esc(d.company)}</div>
+      <div class="action-sub">${d.contact?esc(d.contact)+' · ':''}${esc(route)}</div>
+      ${d.notes?`<div style="font-size:11px;color:var(--dim);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📝 ${esc(d.notes)}</div>`:''}
+    </div>
+    <div class="action-right">
+      ${d.value?`<span style="font-size:13px;font-weight:700;color:var(--green)">${fmtV(d.value)}</span>`:''}
+      ${stagePill(d.stage)}
+      <span style="background:${iconColor}22;color:${iconColor};border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700">${esc(urgencyLabel)}</span>
+      <button class="email-btn" onclick="openEmail('${d.id}')">✉️ Email</button>
+    </div>
+  </div>`;
+}
+
+// ── LEADS VIEW ─────────────────────────────────────────────────
+function renderLeads() {
+  const active = deals.filter(d=>!['Closed Won','Closed Lost'].includes(d.stage));
+  const won    = deals.filter(d=>d.stage==='Closed Won');
+  const pipeline = active.reduce((s,d)=>s+(Number(d.value)||0),0);
+  const revenue  = won.reduce((s,d)=>s+(Number(d.value)||0),0);
+  const overdue  = deals.filter(d=>{const x=daysUntil(d.followUp);return x!==null&&x<0&&!['Closed Won','Closed Lost'].includes(d.stage);});
+  document.getElementById('stats-strip').innerHTML = `
+    <div class="mstat"><div class="mstat-n" style="color:var(--blue)">${active.length}</div><div class="mstat-l">Active</div></div>
+    <div class="mstat"><div class="mstat-n" style="color:var(--green)">${pipeline>=1000?'$'+Math.round(pipeline/1000)+'k':'$'+(pipeline||0)}</div><div class="mstat-l">Pipeline</div></div>
+    <div class="mstat"><div class="mstat-n" style="color:var(--green)">${revenue>=1000?'$'+Math.round(revenue/1000)+'k':'$'+(revenue||0)}</div><div class="mstat-l">Won</div></div>
+    <div class="mstat"><div class="mstat-n" style="color:${overdue.length>0?'var(--red)':'var(--green)'}">${overdue.length}</div><div class="mstat-l">Overdue</div></div>`;
+
+  // stage tabs
+  const tabs = ['All',...STAGES];
+  document.getElementById('stage-tabs').innerHTML = tabs.map(t => {
+    const c = SC[t]; const isActive = t===activeStage;
+    const col = c ? c.dot : 'var(--muted)';
+    const cnt = t==='All' ? deals.length : deals.filter(d=>d.stage===t).length;
+    return `<button class="stab${isActive?' active':''}"
+      style="${isActive?`background:${c?c.bg:'#1c2230'};color:${col};border-color:${col}44`:''}"
+      onclick="setStage('${t}')">${t} <span style="opacity:.55">${cnt}</span></button>`;
+  }).join('');
+
+  const q = (document.getElementById('search-inp').value||'').toLowerCase();
+  const vis = deals.filter(d => {
+    const ms = activeStage==='All'||d.stage===activeStage;
+    const mq = !q||[d.company,d.contact,d.origin,d.destination,d.route,d.notes].some(v=>(v||'').toLowerCase().includes(q));
+    return ms && mq;
+  });
+
+  if (vis.length===0) {
+    document.getElementById('leads-list').innerHTML=`<div class="empty-state"><div class="empty-icon">${deals.length===0?'📦':'🔍'}</div><div class="empty-text">${deals.length===0?'No deals yet':'Nothing found'}</div><div class="empty-sub">${deals.length===0?'Tap ＋ or scan a B/L to start':'Try a different search'}</div></div>`;
+    return;
+  }
+  document.getElementById('leads-list').innerHTML = vis.map(d => {
+    const c = SC[d.stage]||SC['Lead'];
+    const route = d.origin&&d.destination ? `${d.origin} → ${d.destination}` : '';
+    return `<div class="lead-card">
+      <div class="lc-bar" style="background:${c.dot}"></div>
+      <div class="lc-top" onclick="openEditDeal('${d.id}')">
+        <div><div class="lc-company">${esc(d.company)}</div>${d.contact?`<div class="lc-contact">👤 ${esc(d.contact)}</div>`:''}</div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+          ${d.value?`<div class="lc-value">${fmtV(d.value)}</div>`:''}
+          ${stagePill(d.stage)}
+        </div>
+      </div>
+      <div class="lc-meta" onclick="openEditDeal('${d.id}')">
+        ${d.route?`<span class="mtag">✈ ${esc(d.route)}</span>`:''}
+        ${route?`<span class="mtag">📍 ${esc(route)}</span>`:''}
+      </div>
+      <div class="lc-foot">
+        <span style="font-size:11px;color:var(--muted)" onclick="openEditDeal('${d.id}')">${d.followUp?`📅 ${d.followUp}`:''}</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          ${d.followUp?fuBadge(d.followUp,false):''}
+          <button class="email-btn" onclick="openEmail('${d.id}')">✉️ Email</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function setStage(s){activeStage=s;renderLeads();}
+
+// ── FUNNEL VIEW ────────────────────────────────────────────────
+function renderFunnel() {
+  const won   = deals.filter(d=>d.stage==='Closed Won');
+  const lost  = deals.filter(d=>d.stage==='Closed Lost');
+  const total = deals.length;
+  const winRate = (won.length+lost.length) > 0 ? Math.round(won.length/(won.length+lost.length)*100) : 0;
+  const wonRev  = won.reduce((s,d)=>s+(Number(d.value)||0),0);
+  const avgDeal = won.length > 0 ? Math.round(wonRev/won.length) : 0;
+  const pipeline = deals.filter(d=>!['Closed Won','Closed Lost'].includes(d.stage)).reduce((s,d)=>s+(Number(d.value)||0),0);
+
+  // Funnel counts
+  const counts = {};
+  FUNNEL_STAGES.forEach(s => counts[s] = deals.filter(d=>d.stage===s).length);
+  const maxCount = Math.max(...Object.values(counts), 1);
+
+  let html = `<div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Win Rate</div><div class="kpi-value" style="color:var(--green)">${winRate}%</div><div class="kpi-sub">${won.length} won · ${lost.length} lost</div></div>
+    <div class="kpi"><div class="kpi-label">Avg Deal Size</div><div class="kpi-value" style="color:var(--blue)">${avgDeal>=1000?'$'+Math.round(avgDeal/1000)+'k':'$'+avgDeal}</div><div class="kpi-sub">from ${won.length} closed deals</div></div>
+    <div class="kpi"><div class="kpi-label">Pipeline Value</div><div class="kpi-value" style="color:var(--yellow)">${pipeline>=1000?'$'+Math.round(pipeline/1000)+'k':'$'+pipeline}</div><div class="kpi-sub">active deals only</div></div>
+    <div class="kpi"><div class="kpi-label">Total Deals</div><div class="kpi-value" style="color:var(--purple)">${total}</div><div class="kpi-sub">${deals.filter(d=>!['Closed Won','Closed Lost'].includes(d.stage)).length} still active</div></div>
+  </div>`;
+
+  html += `<div class="sec-hd">Conversion Funnel</div><div class="funnel-wrap">`;
+  FUNNEL_STAGES.forEach((stage, i) => {
+    const cnt   = counts[stage];
+    const color = FUNNEL_COLORS[i];
+    const pct   = Math.round((cnt/maxCount)*100)||0;
+    const conv  = i>0&&counts[FUNNEL_STAGES[i-1]]>0 ? Math.round(cnt/counts[FUNNEL_STAGES[i-1]]*100)+'%' : '';
+    if (i > 0) html += `<div class="funnel-arrow">↓ ${conv||'–'}</div>`;
+    html += `<div class="funnel-row" onclick="setTab('leads');setStage('${stage}')">
+      <div class="funnel-label" style="color:${color}">${stage}</div>
+      <div class="funnel-bar-wrap">
+        <div class="funnel-bar" style="width:${pct}%;background:${color}dd">${cnt>0?cnt:''}</div>
+      </div>
+      <div class="funnel-count" style="color:${color}">${cnt}</div>
+    </div>`;
+  });
+  html += `</div>`;
+
+  // Monthly won deals (last 6 months)
+  html += `<div class="sec-hd">Monthly Closed Revenue</div><div class="monthly-wrap">`;
+  let maxRev = 0;
+  const monthData = [];
+  for(let i=5;i>=0;i--){
+    const d = new Date(); d.setDate(1); d.setMonth(d.getMonth()-i);
+    const y=d.getFullYear(), m=d.getMonth();
+    const mWon = won.filter(deal=>{
+      if(!deal.createdAt) return false;
+      const dd=new Date(deal.createdAt);
+      return dd.getFullYear()===y && dd.getMonth()===m;
+    });
+    const rev = mWon.reduce((s,deal)=>s+(Number(deal.value)||0),0);
+    if(rev>maxRev) maxRev=rev;
+    monthData.push({label:d.toLocaleString('default',{month:'short'}),rev,cnt:mWon.length});
+  }
+  monthData.forEach(({label,rev,cnt})=>{
+    const pct = maxRev>0 ? Math.round(rev/maxRev*100) : 0;
+    const txt = rev>=1000?'$'+Math.round(rev/1000)+'k':rev>0?'$'+rev:'';
+    html += `<div class="month-row">
+      <div class="month-label">${label}</div>
+      <div class="month-bar-bg"><div class="month-bar" style="width:${pct}%">${pct>25?txt:''}</div></div>
+      <div class="month-val">${txt||'—'}</div>
+    </div>`;
+  });
+  html += `</div>`;
+
+  document.getElementById('funnel-view').innerHTML = html;
+}
+
+// ── DEAL MODAL ─────────────────────────────────────────────────
+function openNewDeal(prefill) {
+  editingId = null;
+  document.getElementById('deal-title').textContent = 'New Lead';
+  document.getElementById('deal-save-btn').textContent = 'Add Lead';
+  document.getElementById('deal-del-btn').style.display = 'none';
+  document.getElementById('scan-sc').style.display = 'flex';
+  ['company','contact','origin','destination','value','notes'].forEach(k=>document.getElementById('f-'+k).value='');
+  document.getElementById('f-route').value='Air';
+  document.getElementById('f-stage').value='Lead';
+  document.getElementById('f-followup').value='';
+  if (prefill) {
+    ['company','contact','origin','destination','value','notes','followUp'].forEach(k=>{
+      if(prefill[k]) document.getElementById('f-'+k.replace('followUp','followup')).value=prefill[k];
+    });
+    if(prefill.route&&ROUTES.includes(prefill.route)) document.getElementById('f-route').value=prefill.route;
+    if(prefill.stage) document.getElementById('f-stage').value=prefill.stage;
+  }
+  document.getElementById('deal-ov').style.display='flex';
+  setTimeout(()=>document.getElementById('f-company').focus(),150);
+}
+function openEditDeal(id) {
+  const d = deals.find(x=>x.id===id); if(!d) return;
+  editingId = id;
+  document.getElementById('deal-title').textContent = 'Edit Deal';
+  document.getElementById('deal-save-btn').textContent = 'Save Changes';
+  document.getElementById('deal-del-btn').style.display = 'block';
+  document.getElementById('scan-sc').style.display = 'none';
+  document.getElementById('f-company').value    = d.company||'';
+  document.getElementById('f-contact').value    = d.contact||'';
+  document.getElementById('f-origin').value     = d.origin||'';
+  document.getElementById('f-destination').value= d.destination||'';
+  document.getElementById('f-route').value      = d.route||'Air';
+  document.getElementById('f-value').value      = d.value||'';
+  document.getElementById('f-stage').value      = d.stage||'Lead';
+  document.getElementById('f-followup').value   = d.followUp||'';
+  document.getElementById('f-notes').value      = d.notes||'';
+  document.getElementById('deal-ov').style.display='flex';
+}
+function saveDeal() {
+  const company = document.getElementById('f-company').value.trim();
+  if(!company){ document.getElementById('f-company').style.borderColor='var(--red)'; document.getElementById('f-company').focus(); return; }
+  document.getElementById('f-company').style.borderColor='';
+  const form = {
+    company, contact:document.getElementById('f-contact').value.trim(),
+    origin:document.getElementById('f-origin').value.trim(), destination:document.getElementById('f-destination').value.trim(),
+    route:document.getElementById('f-route').value, value:document.getElementById('f-value').value,
+    stage:document.getElementById('f-stage').value, followUp:document.getElementById('f-followup').value,
+    notes:document.getElementById('f-notes').value.trim(),
+  };
+  if(editingId) deals = deals.map(d=>d.id===editingId?{...d,...form}:d);
+  else          deals = [...deals,{...form,id:uid(),createdAt:td()}];
+  closeSheet('deal-ov'); markUnsaved(); renderAll();
+}
+function deleteDeal() {
+  if(!editingId||!confirm('Delete this deal?')) return;
+  deals = deals.filter(d=>d.id!==editingId);
+  closeSheet('deal-ov'); markUnsaved(); renderAll();
+}
+
+// ── SCANNER ────────────────────────────────────────────────────
+function openScanner(){document.getElementById('scan-ov').style.display='flex';renderScanUpload();}
+function renderScanUpload(){
+  document.getElementById('scan-body').innerHTML=`
+    <div class="drop-zone" onclick="document.getElementById('bl-file').click()">
+      <div style="font-size:40px;margin-bottom:10px">📄</div>
+      <div style="font-size:17px;font-weight:700;margin-bottom:5px">Upload or photograph your B/L</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:4px">Sea B/L · Air Waybill · House B/L</div>
+      <div class="drop-btns">
+        <button class="dbtn dbtn-f" onclick="event.stopPropagation();document.getElementById('bl-file').click()">📁 Upload File</button>
+        <button class="dbtn dbtn-c" onclick="event.stopPropagation();triggerCamera()">📷 Take Photo</button>
+      </div>
+    </div>
+    <div style="background:var(--card);border-radius:12px;padding:12px 14px;margin-top:4px">
+      <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px">📋 Tips for a good scan</div>
+      <div style="font-size:12px;color:var(--dim);display:flex;flex-direction:column;gap:5px">
+        <span>✅ Lay the B/L flat on a table</span>
+        <span>✅ Make sure all text is sharp and readable</span>
+        <span>✅ Use good lighting — avoid shadows</span>
+        <span>✅ Capture the full document in frame</span>
+        <span>❌ Avoid blurry, dark or angled shots</span>
+      </div>
+    </div>`;
+}
+
+function triggerCamera() {
+  // On mobile this opens the camera, on desktop opens file picker
+  const cam = document.getElementById('bl-cam');
+  cam.click();
+}
+
+function processBL(inp){
+  const file=inp.files[0]; if(!file) return;
+  if(!file.type.startsWith('image/')){alert('Please select an image file (JPG, PNG, etc.)'); return;}
+  inp.value='';
+  const prev=URL.createObjectURL(file);
+  document.getElementById('scan-body').innerHTML=`
+    <div style="text-align:center;padding:20px 0">
+      <img src="${prev}" class="bl-prev"/>
+      <div class="spinner"></div>
+      <div style="font-size:17px;font-weight:700;margin-bottom:5px">Reading your B/L…</div>
+      <div style="font-size:13px;color:var(--muted);animation:pulse 1.5s ease infinite">Extracting shipper, consignee, ports and cargo details</div>
+    </div>`;
+  const r=new FileReader();
+  r.onload=async e=>{
+    try{
+      if(!apiKey){ renderScanError('No API key set. Tap 💾 Data → enter your Anthropic API key to use the B/L Scanner.', null); return; }
+      const data=await callClaude(e.target.result.split(',')[1],file.type);
+      if(data._unclear){
+        renderScanError(data._message||'The image is not clear enough to read. Please retake the photo.', prev);
+      } else {
+        blData=data; renderScanReview(data,prev);
+      }
+    } catch(err){
+      if(err.message==='NO_KEY')
+        renderScanError('No API key set. Tap 💾 Data → enter your Anthropic API key to use the B/L Scanner.', null);
+      else
+        renderScanError('Could not connect to AI. Check your internet connection and API key, then try again.', prev);
+    }
+  };
+  r.readAsDataURL(file);
+}
+
+function renderScanError(msg, prev) {
+  document.getElementById('scan-body').innerHTML=`
+    ${prev?`<img src="${prev}" class="bl-prev"/>`:''}
+    <div style="background:var(--red-bg);border:1px solid #f8514933;border-radius:12px;padding:16px;margin-bottom:16px;text-align:center">
+      <div style="font-size:28px;margin-bottom:8px">📷</div>
+      <div style="font-size:15px;font-weight:700;color:var(--red);margin-bottom:6px">Could not read this image</div>
+      <div style="font-size:13px;color:#f8714a;line-height:1.6">${esc(msg)}</div>
+    </div>
+    <div style="background:var(--card);border-radius:12px;padding:12px 14px;margin-bottom:16px">
+      <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:7px">Try again with a better photo:</div>
+      <div style="font-size:12px;color:var(--dim);display:flex;flex-direction:column;gap:4px">
+        <span>📐 Hold phone directly above the document</span>
+        <span>💡 Move to a brighter area or turn on lights</span>
+        <span>🔍 Get closer so text fills the frame</span>
+        <span>🤚 Keep steady — wait for camera to focus</span>
+      </div>
+    </div>
+    <div class="drop-btns" style="justify-content:stretch;gap:10px">
+      <button class="dbtn dbtn-f" style="flex:1" onclick="document.getElementById('bl-file').click()">📁 Upload Different File</button>
+      <button class="dbtn dbtn-c" style="flex:1" onclick="triggerCamera()">📷 Retake Photo</button>
+    </div>`;
+}
+async function callClaude(b64,mime){
+  if(!apiKey) throw new Error('NO_KEY');
+  const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({
+    model:'claude-sonnet-4-20250514',max_tokens:1000,
+    system:`You are an expert Bill of Lading reader for freight forwarding.
+
+FIRST check if the image is a readable B/L document:
+- If the image is too blurry, dark, angled, or you cannot read the text clearly, return: {"_unclear":true,"_message":"[specific reason why — e.g. image is too blurry, too dark, text is not visible]"}
+- If it is not a B/L document at all, return: {"_unclear":true,"_message":"This does not appear to be a Bill of Lading document."}
+
+If it IS a clear, readable B/L, extract all data and return ONLY valid JSON with these keys (empty string if not found):
+{"company":"Shipper/Exporter","consignee":"Consignee","contact":"Contact person","origin":"Port of Loading city","destination":"Port of Discharge city","route":"Air|Sea FCL|Sea LCL|Road|Rail|Multimodal","blNumber":"B/L or AWB number","vessel":"Vessel name or flight","commodity":"Cargo description","weight":"Gross weight with unit","packages":"Number of packages or containers","value":"freight value digits only","eta":"ETA in YYYY-MM-DD","notes":"Notify party, container numbers, special instructions"}
+
+Return ONLY the JSON object. No markdown, no explanation.`,
+    messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:mime,data:b64}},{type:'text',text:'Read this B/L and return JSON only.'}]}]
+  })});
+  const d=await res.json();
+  if(d.error) throw new Error(d.error.message);
+  return JSON.parse((d.content||[]).map(b=>b.text||'').join('').replace(/```json|```/g,'').trim());
+}
+function renderScanReview(data,prev){
+  const extras=[['B/L / AWB',data.blNumber],['Vessel',data.vessel],['Consignee',data.consignee],['Commodity',data.commodity],['Weight',data.weight],['ETA',data.eta]].filter(([,v])=>v);
+  const notes=[data.blNumber?`B/L: ${data.blNumber}`:'',data.vessel?`Vessel: ${data.vessel}`:'',data.consignee?`Consignee: ${data.consignee}`:'',data.commodity?`Cargo: ${data.commodity}`:'',data.weight?`Weight: ${data.weight}`:'',data.packages?`Pkg: ${data.packages}`:'',data.notes||''].filter(Boolean).join(' | ');
+  document.getElementById('scan-body').innerHTML=`
+    <img src="${prev}" class="bl-prev"/>
+    <div style="background:#0d2119;border:1px solid #3fb95033;border-radius:9px;padding:9px 13px;margin-bottom:13px;font-size:13px;color:var(--green);display:flex;align-items:center;gap:7px">✅ Data extracted — review before importing</div>
+    ${extras.length?`<div class="ext-grid">${extras.map(([l,v])=>`<div class="ext-item"><div class="ext-lbl">${esc(l)}</div><div class="ext-val">${esc(v)}</div></div>`).join('')}</div>`:''}
+    <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:9px">Import Fields</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px">
+      <div class="fg"><label class="flabel">Shipper</label><input id="r-company" value="${esc(data.company||'')}"/></div>
+      <div class="fg"><label class="flabel">Contact</label><input id="r-contact" value="${esc(data.contact||'')}"/></div>
+      <div class="fg"><label class="flabel">Origin</label><input id="r-origin" value="${esc(data.origin||'')}"/></div>
+      <div class="fg"><label class="flabel">Destination</label><input id="r-destination" value="${esc(data.destination||'')}"/></div>
+      <div class="fg"><label class="flabel">Route</label><select id="r-route">${ROUTES.map(r=>`<option${r===(data.route||'Sea FCL')?' selected':''}>${r}</option>`).join('')}</select></div>
+      <div class="fg"><label class="flabel">Value</label><input id="r-value" type="number" value="${esc(data.value||'')}"/></div>
+    </div>
+    <div class="fg"><label class="flabel">Notes</label><textarea id="r-notes" rows="3">${esc(notes)}</textarea></div>
+    <div class="scan-actions">
+      <button class="btn-rescan" onclick="renderScanUpload()">← Rescan</button>
+      <button class="btn-import" onclick="importDeal()">Import Deal →</button>
+    </div>`;
+}
+function importDeal(){
+  const pf={company:document.getElementById('r-company').value,contact:document.getElementById('r-contact').value,origin:document.getElementById('r-origin').value,destination:document.getElementById('r-destination').value,route:document.getElementById('r-route').value,value:document.getElementById('r-value').value,notes:document.getElementById('r-notes').value,followUp:blData?.eta||'',stage:'Shipment'};
+  closeSheet('scan-ov'); openNewDeal(pf);
+}
+
+// ── EMAIL ──────────────────────────────────────────────────────
+let emailDealId = null;
+
+function openEmail(dealId) {
+  emailDealId = dealId;
+  const d = deals.find(x=>x.id===dealId); if(!d) return;
+  document.getElementById('email-ov').style.display='flex';
+  generateEmail(d);
+}
+
+async function generateEmail(d) {
+  if(!apiKey){
+    document.getElementById('email-body').innerHTML=`
+      <div style="background:var(--red-bg);border:1px solid #f8514933;border-radius:12px;padding:20px;text-align:center">
+        <div style="font-size:28px;margin-bottom:8px">🔑</div>
+        <div style="font-size:15px;font-weight:700;color:var(--red);margin-bottom:6px">API Key Required</div>
+        <div style="font-size:13px;color:#f8714a;margin-bottom:14px">Add your Anthropic API key in the Data menu to use AI email drafting.</div>
+        <button onclick="closeSheet('email-ov');openDataMenu()" style="padding:11px 20px;border-radius:10px;background:var(--green);color:#000;font-size:14px;font-weight:700;border:none">Go to Data → Add Key</button>
+      </div>`;
+    return;
+  }
+  document.getElementById('email-body').innerHTML = `
+    <div class="email-generating">
+      <div class="spinner" style="border-top-color:var(--blue);border-color:#58a6ff22;margin-bottom:14px"></div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:5px">Drafting your email…</div>
+      <div style="font-size:13px;color:var(--muted)">AI is writing a professional follow-up based on this deal</div>
+    </div>`;
+
+  const context = [
+    `Company: ${d.company}`,
+    d.contact  ? `Contact: ${d.contact}` : '',
+    d.stage    ? `Deal stage: ${d.stage}` : '',
+    d.route    ? `Route type: ${d.route}` : '',
+    d.origin && d.destination ? `Route: ${d.origin} to ${d.destination}` : '',
+    d.value    ? `Deal value: $${Number(d.value).toLocaleString()}` : '',
+    d.followUp ? `Follow-up date: ${d.followUp}` : '',
+    d.notes    ? `Notes: ${d.notes}` : '',
+  ].filter(Boolean).join('\n');
+
+  const stagePrompts = {
+    'Lead':        'Write a warm first-contact email to introduce freight forwarding services and open a conversation.',
+    'Quoted':      'Write a polite follow-up email checking if they have reviewed the quote and if they have any questions.',
+    'Negotiating': 'Write a professional email to move the negotiation forward and address any concerns they might have.',
+    'Shipment':    'Write a shipment status update email reassuring the client their cargo is being handled and asking if they need anything.',
+    'Closed Won':  'Write a thank-you email for choosing our services and confirming next steps.',
+    'Closed Lost': 'Write a graceful follow-up email keeping the door open for future business.',
+  };
+  const tone = stagePrompts[d.stage] || stagePrompts['Lead'];
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST', headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514', max_tokens:700,
+        system:`You are an expert freight forwarding sales professional writing a concise, professional email.
+Return ONLY a JSON object with two keys — no markdown, no explanation:
+{"subject": "email subject line", "body": "full email body text with line breaks as \\n"}
+Keep the email under 150 words. Be professional but warm. Do not use placeholders like [Your Name] — sign off as "FreightCRM Team".`,
+        messages:[{role:'user', content:`Deal details:\n${context}\n\nInstruction: ${tone}`}]
+      })
+    });
+    const data = await res.json();
+    const text = (data.content||[]).map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(text);
+    renderEmailEditor(d, parsed.subject||'', parsed.body||'');
+  } catch(e) {
+    // Fallback template if AI fails
+    const subject = `Follow-up: ${d.route||'Freight'} Shipment — ${d.company}`;
+    const body = `Dear ${d.contact||'Team'},\n\nI wanted to follow up regarding your ${d.route||'freight'} shipment${d.origin&&d.destination?' from '+d.origin+' to '+d.destination:''}.\n\nPlease let me know if you have any questions or if there's anything I can assist you with.\n\nBest regards,\nFreightCRM Team`;
+    renderEmailEditor(d, subject, body);
+  }
+}
+
+function renderEmailEditor(d, subject, body) {
+  document.getElementById('email-body').innerHTML = `
+    <div style="background:#0d2119;border:1px solid #3fb95033;border-radius:9px;padding:9px 13px;margin-bottom:14px;font-size:13px;color:var(--green);display:flex;align-items:center;gap:7px">
+      ✅ Email drafted for <strong>${esc(d.company)}</strong> — edit if needed, then open in your email app
+    </div>
+    <div class="email-to-row">
+      <span class="email-to-label">To</span>
+      <input id="e-to" class="email-subject-inp" placeholder="recipient@email.com" value="${esc(d.contact||'')}"/>
+    </div>
+    <div class="email-subject-row">
+      <span class="email-subject-label">Subject</span>
+      <input id="e-subject" class="email-subject-inp" value="${esc(subject)}"/>
+    </div>
+    <textarea id="e-body" class="email-body-area">${esc(body)}</textarea>
+    <div class="email-actions">
+      <button class="btn-regen" onclick="generateEmail(deals.find(x=>x.id===emailDealId))">↻ Redraft</button>
+      <button class="btn-open-mail" onclick="openInMailApp()">📨 Open in Email App</button>
+    </div>
+    <div class="email-tip">Your email app will open with this message pre-filled.<br/>Works with Gmail, Outlook, Apple Mail and any default mail app.</div>`;
+}
+
+function openInMailApp() {
+  const to      = encodeURIComponent(document.getElementById('e-to').value.trim());
+  const subject = encodeURIComponent(document.getElementById('e-subject').value.trim());
+  const body    = encodeURIComponent(document.getElementById('e-body').value.trim());
+  window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
+}
+
+// ── SHEET HELPERS ──────────────────────────────────────────────
+function closeSheet(id){document.getElementById(id).style.display='none';}
+function maybeClose(id,e){if(e.target===document.getElementById(id)) closeSheet(id);}
+function openDataMenu(){
+  updateNotifLabel();
+  document.getElementById('data-ov').style.display='flex';
+  const kinp = document.getElementById('apikey-inp');
+  if(kinp){ kinp.value = apiKey; updateApiKeyStatus(); }
+  const sinp = document.getElementById('sheets-inp');
+  if(sinp){ sinp.value = sheetsUrl; updateSheetsStatus(); }
+}
+function saveApiKey(){
+  apiKey = document.getElementById('apikey-inp').value.trim();
+  localStorage.setItem('freight-apikey', apiKey);
+  updateApiKeyStatus();
+}
+function updateSheetsStatus(){
+  const el = document.getElementById('sheets-status'); if(!el) return;
+  if(sheetsUrl && sheetsUrl.startsWith('https://script.google.com')){
+    el.innerHTML = '<span style="color:var(--green)">✅ URL looks good — tap Test to verify</span>';
+  } else if(sheetsUrl) {
+    el.innerHTML = '<span style="color:var(--orange)">⚠️ Should start with https://script.google.com</span>';
+  } else {
+    el.innerHTML = '<span style="color:var(--dim)">Paste your Google Apps Script deployment URL above. Data will sync automatically on every change.</span>';
+  }
+}
+async function testSheetsSync(){
+  const el = document.getElementById('sheets-status'); if(!el) return;
+  if(!sheetsUrl){ el.innerHTML='<span style="color:var(--orange)">⚠️ No URL entered yet</span>'; return; }
+  el.innerHTML = '<span style="color:var(--blue)">🔄 Testing connection…</span>';
+  try {
+    const res  = await fetch(sheetsUrl, { method:'POST', body: new URLSearchParams({deals: JSON.stringify(deals)}) });
+    const text = await res.text();
+    const data = JSON.parse(text);
+    if(data.ok){
+      el.innerHTML = `<span style="color:var(--green)">✅ Connected! ${data.count} deal${data.count!==1?'s':''} synced to Google Sheets.</span>`;
+      setSaved(true);
+    } else {
+      el.innerHTML = `<span style="color:var(--red)">❌ Error: ${data.error||'Unknown error'}</span>`;
+    }
+  } catch(e){
+    el.innerHTML = `<span style="color:var(--red)">❌ Could not reach the URL. Make sure you deployed a <strong>New deployment</strong> (not the /dev URL) set to "Anyone".</span>`;
+  }
+}
+function updateApiKeyStatus(){
+  const el = document.getElementById('apikey-status');
+  if(!el) return;
+  if(apiKey && apiKey.startsWith('sk-ant')){
+    el.textContent = '✅ API key saved — B/L Scanner and Email Drafting are active';
+    el.style.color = 'var(--green)';
+  } else if(apiKey) {
+    el.textContent = '⚠️ Key format looks wrong — should start with sk-ant-…';
+    el.style.color = 'var(--orange)';
+  } else {
+    el.textContent = 'Required for B/L Scanner and Email Drafting. Get a key at console.anthropic.com';
+    el.style.color = 'var(--dim)';
+  }
+}
+</script>
+</body>
+</html>
